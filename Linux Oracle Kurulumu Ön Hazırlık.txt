@@ -1,0 +1,120 @@
+scp "wallpaper.jpg" yakup@192.168.29.82:/home/yakup/Pictures -->> klasörün içine girip wallpaper.jpg dosyasını Linux sistemimize pictures kısmına aktardık.
+
+1. Aşama -> Host File Değişikliği
+
+vim /etc/hosts  -->> vim editörüne giriş
+
+küçük a harfine bas aşağıdan modu değiştir (Insert)
+alt satıra indikten sonra aşağıdaki komut yazılır
+
+192.168.29.82  dbserver.localdomain dvserver
+
+esc ye basılır ve shif : tuşuna basılır
+
+wq yazılır, enter a basılır
+
+2. Aşama -> Kurulum Öncesi Hazırlıklar
+a-) database kurulumu öncesi bazı paketlerin otomatik yüklenmesi bazi klasörlerin ve dosyaların otomatik oluşturulması oracle kullanıcısının ve oracle gruplarının otomatik oluşturulması. İlgili klasörlere oracle kullanıcısının yetkilendirilmesi için ilgili komut aşağıda
+
+dnf install -y oracle-database-preinstall-19c
+
+b-) Linux güncellemelerinin yüklenmesi
+
+yum update -y
+
+
+3. Aşama -> Oracle kulanıcısının şifresinin belirlenmesi
+
+passwd oracle
+
+4. Aşama -> Linux Güvenlik Dosyasının SELINUX parametresinin değerini permissive yapma
+
+vim /etc/selinux/config
+enforcing kısmını siliyoruz
+a tuşuna basıp insert moda alıyoruz
+enforcing kısmını siliyoruz sildiğimiz kısımın yerine permissive yazıyoruz
+esc ye basıyoruz
+shift + : ya basıyoruz
+wq yazıp enter diyoruz
+ve çıkıyoruz
+setenforce Permissive yazıp enter diyoruz
+
+5. Aşama -> firewall kapatılması
+
+systemctl stop firewalld -> firewall durdurudu
+systemctl disable firewalld -> firewall yeniden başlatılmayacak
+
+6. Aşama -> Database'in yükleneceği klasörlerin oluşturulması ve 
+	oracle kullanıcısının yetkilendirilmesi
+mkdir -p /u01/app/oracle/product/19.0.0/dbhome_1  -> oracle database'in home director kısmı
+mkdir -p /u02/oradata                             -> database kısımlarının bulunuacağı kısım
+chown -R oracle:oinstall /u01 /u02
+chmod -R 775 /u01 /u02
+
+7. Aşama -> Putty gibi SSH kullanan araçları kullanacaksak aşağıdaki komutu çalıştıralım
+
+xhost +dbserver.localdomain -> bizim host adımız "dbserver.localdomain" 
+
+8. Aşama -> Start, stop enviroment gibi işlemler için script  dosyası oluşturma
+
+mkdir /home/oracle/scripts
+
+9. Aşama -> Enviroment parametrelerini otomatik set edecek setEnv.sh isimli bir dosya oluşturma
+Veritabanının ismini ORCL yaptık. İsim size kalmış
+Oracle Uniqname veSID en fazla 8 karakter olmalıdır
+
+cat > /home/oracle/scripts/setEnv.sh <<EOF
+
+# Oracle Settings
+export TMP=/tmp
+export TMPDIR=\$TMP
+export ORACLE_HOSTNAME=dbserver.localdomain
+export ORACLE_UNQNAME=ORCL
+export ORACLE_BASE=/u01/app/oracle
+export ORACLE_HOME=\$ORACLE_BASE/product/19.0.0/dbhome_1
+export ORA_INVENTORY=/u01/app/oraInventory
+export ORACLE_SID=ORCL
+export DATA_DIR=/u02/oradata
+export PATH=/usr/sbin:/usr/local/bin:\$PATH
+export PATH=\$ORACLE_HOME/bin:\$PATH
+export LD_LIBRARY_PATH=\$ORACLE_HOME/lib:/lib:/usr/lib
+export CLASSPATH=\$ORACLE_HOME/jlib:\$ORACLE_HOME/rdbms/jlib
+EOF
+
+10. Aşama -> setEnv.sh dosyasının .bash_profile içine eklenmesi
+">>" işareti bu dosyanın iiçine girip ekle demektir
+
+echo ". /home/oracle/scripts/setEnv.sh" >> /home/oracle/.bash_profile
+
+11. Aşama -> Veritabanının kapatılıp açılmasını sağlayan sciptlerin oluşturulması.
+
+	a) start_all.sh sriptinin oluşturulması
+		cat > /home/oracle/scripts/start_all.sh <<EOF
+		#!bin/bash
+		. /home/oracle/scripts/setEnv.sh
+		export ORAENV_ASK=NO
+		. oraenv
+		export ORAENV_ASK=YES
+		dbstart \$ORACLE_HOME
+		EOF
+	b) stop_all.sh sriptinin oluşturulması
+		cat > /home/oracle/scripts/stop_all.sh <<EOF
+		#!bin/bash
+		. /home/oracle/scripts/setEnv.sh
+		export ORAENV_ASK=NO
+		. oraenv
+		export ORAENV_ASK=YES
+		dbstart \$ORACLE_HOME
+		EOF
+	c) scripts klasörünün owner'ını değiştirilmesi ve bu klasör altındaki dosyaların executable yapılması
+		chown -R oracle:oinstall /home/oracle/scripts
+		chmod u+x /home/oracle/scripts/*.sh
+
+
+
+
+
+
+
+
+
