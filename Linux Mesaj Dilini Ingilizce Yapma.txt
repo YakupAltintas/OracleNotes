@@ -1,0 +1,15 @@
+su - root
+vim /etc/profile
+
+"a" tuşuna basıp insert moda al
+
+en aşağı in
+
+LNS_LANG=AMERICAN_AMERICA.WEBMSWIN1252
+export NLS_LANG
+
+üstteki kodu yaz 
+
+"esc" ye bas
+
+":wq" yaz ve enter'a tıkla
