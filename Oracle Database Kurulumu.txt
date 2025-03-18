@@ -1,0 +1,58 @@
+12 Download Oracle database 19c for Linux
+
+
+13. Aşama  grafik ekran ayarlama
+
+su - root -> root kullanıcısına geçtik
+
+export DISPLAY=:0.0 -> ekranı ayarladık
+xhost + -> erişim kontrolcüsünü devre dışı bıraktık ve herhangi bir hosttan erişebilir hale getirdik
+
+14. Aşama -> oracle kullanıcısına geçme
+
+su - oracle
+
+15. Aşama -> setup dosyası açma
+
+mkdir /home/oracle/setup_files
+
+16. Aşama -> Setup dosyasını Windows'tan Linux'a kopyalama
+
+Windows'ta cmd aç
+
+- dosyanın bulunduğu konuma gittik ve Lınux tabanlı oracle veritabanını Linux işletim sistemize aktaracağız
+- scp dosya_adi linux_kullanici_adi@ipadress:/linux_dosya_yolu
+scp LINUX.X64_193000_db_home.zip oracle@192.168.29.82:/home/oracle/setup_files
+
+
+17. Aşama -> Setup dosyasını unzip edelim
+
+cd $ORACLE_HOME
+
+unzip -oq /home/oracle/setup_files/LINUX.X64_193000_db_home.zip
+
+cat /etc/oracle-release
+
+
+18. Aşama -> Setup çalıştırıyoruz(1. kurulum , Setup software only )
+
+cd $ORACLE_HOME
+
+./runInstaller
+
+hata alınırsa aşağıdaki komutları sırasıyla çalıştırmalısın
+(yükleme ekranı yerine hata alırsan ->  export DISPLAY=:0.0 çalıştır)
+ export CV_ASSUME_DISTID=0EL7.6
+ ./runInstaller
+ 
+
+19. Aşama -> yazılımı kurduktan sonra database kurulumuna geldik
+
+terminale "dbca" yazıp çalıştıralım
+
+
+
+
+ 
+
+
